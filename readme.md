@@ -3,14 +3,18 @@
 ## Схема проекта
 ```
 ├── src/
-│ └── db/
-│ ├── backend/
+│ ├── db/
+│ │ ├── backend/
+│ │ │ ├── __init__.py
+│ │ │ └── memory.py
 │ │ ├── __init__.py
-│ │ └── memory.py
-│ ├── __init__.py
-│ ├── __main__.py
-│ └── tui.py
-│
+│ │ ├── __main__.py
+│ │ └── tui.py
+│ │    
+│ ├── tests/
+│ │  ├── memory_test.py
+│ │  └── tui_test.py
+│ │
 └── README.md
 ```
 
@@ -18,3 +22,4 @@
 1. Таблица студентов
 2. CRUD операции
 3. Обарботка ошибок пользователя
+4. Тесты

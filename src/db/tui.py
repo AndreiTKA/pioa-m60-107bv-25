@@ -1,9 +1,15 @@
 from src.db.backend.memory import StudentTable
+from src.db.backend.memory import JsonStudentTable
+from src.db.backend.memory import CsvStudentTable
 
 
 class Tui:
     def __init__(self) -> None:
         self._student_table = StudentTable()
+        self._format_handlers = {
+            "json": JsonStudentTable,
+            "csv": CsvStudentTable,
+        }
 
     def _print_menu(self) -> None:
         print("\n=== База студентов ===")
@@ -12,6 +18,8 @@ class Tui:
         print("3. Найти записи")
         print("4. Обновить записи")
         print("5. Удалить записи")
+        print("6. Сохранить в файл")
+        print("7. Загрузить из файла")
         print("0. Выход")
 
     def _read_int(self, prompt: str) -> int:
@@ -172,6 +180,126 @@ class Tui:
         except ValueError as exc:
             print(f"Ошибка: {exc}")
 
+    def _save_to_file(self) -> None:
+
+        print("\n=== Сохранение в файл ===")
+
+        if not self._student_table.select():
+            print("Нет данных для сохранения.")
+            return
+
+        print("Выберите формат файла:")
+        print("1. JSON")
+        print("2. CSV")
+        format_choice = input().strip()
+
+        if format_choice == "1":
+            format_type = "json"
+            extension = ".json"
+        elif format_choice == "2":
+            format_type = "csv"
+            extension = ".csv"
+        else:
+            print("Неверный выбор формата.")
+            return
+
+        filename = input("Введите имя файла (без расширения): ").strip()
+        if not filename:
+            print("Имя файла не может быть пустым.")
+            return
+
+        filepath = filename + extension
+
+        try:
+            format_table = self._format_handlers[format_type]()
+
+            for record in self._student_table.select():
+                format_table.create(
+                    record[0], record[1], record[2], record[3], record[4]
+                )
+
+            format_table.save(filepath)
+            print(f"Данные успешно сохранены в файл: {filepath}")
+
+        except Exception as exc:
+            print(f"Ошибка при сохранении: {exc}")
+
+    def _load_from_file(self) -> None:
+        print("\n=== Загрузка из файла ===")
+
+        print("Выберите формат файла:")
+        print("1. JSON")
+        print("2. CSV")
+        format_choice = input().strip()
+
+        if format_choice == "1":
+            format_type = "json"
+            extension = ".json"
+        elif format_choice == "2":
+            format_type = "csv"
+            extension = ".csv"
+        else:
+            print("Неверный выбор формата.")
+            return
+
+        filename = input("Введите имя файла (без расширения): ").strip()
+        if not filename:
+            print("Имя файла не может быть пустым.")
+            return
+
+        filepath = filename + extension
+
+        try:
+            print("\nРежим загрузки:")
+            print("1. Заменить все текущие данные")
+            print("2. Добавить к существующим данным")
+            load_mode = input().strip()
+
+            format_table = self._format_handlers[format_type]()
+            format_table.load(filepath)
+            loaded_records = format_table.select()
+
+            if not loaded_records:
+                print("Файл не содержит записей.")
+                return
+
+            if load_mode == "1":
+                all_ids = [record[0] for record in self._student_table.select()]
+                for record_id in all_ids:
+                    self._student_table.delete({"id": record_id})
+
+                added_count = 0
+                for record in loaded_records:
+                    self._student_table.create(
+                        record[0], record[1], record[2], record[3], record[4]
+                    )
+                    added_count += 1
+
+                print(f"Данные заменены. Загружено записей: {added_count}")
+
+            elif load_mode == "2":
+                added_count = 0
+                skipped_count = 0
+                for record in loaded_records:
+                    try:
+                        self._student_table.create(
+                            record[0], record[1], record[2], record[3], record[4]
+                        )
+                        added_count += 1
+                    except ValueError:
+                        skipped_count += 1
+
+                print(f"Загрузка завершена. Добавлено: {added_count}, пропущено: {skipped_count}")
+
+            else:
+                print("Неверный выбор режима загрузки.")
+                return
+
+        except FileNotFoundError:
+            print(f"Ошибка: файл '{filepath}' не найден.")
+        except Exception as exc:
+            print(f"Ошибка при загрузке: {exc}")
+
     def run(self) -> None:
         while True:
             self._print_menu()
@@ -187,6 +315,10 @@ class Tui:
                 self.update()
             elif action == "5":
                 self._delete()
+            elif action == "6":
+                self._save_to_file()
+            elif action == "7":
+                self._load_from_file()
             elif action == "0":
                 print("Выход из программы.")
                 break

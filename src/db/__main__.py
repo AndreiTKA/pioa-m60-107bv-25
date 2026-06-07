@@ -1,4 +1,4 @@
-from tui import Tui
+from src.db.tui import Tui
 
 if '__main__' == __name__:
     Tui().run()

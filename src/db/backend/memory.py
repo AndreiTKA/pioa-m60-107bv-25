@@ -1,3 +1,6 @@
+import json, csv
+
+
 class StudentTable:
     def __init__(self) -> None:
         self._records: list[tuple[int, str, str, int, str]] = []
@@ -107,3 +110,60 @@ class StudentTable:
         if deleted_count == 0:
             raise ValueError("Не найдено записей, соответствующих фильтрам.")
         return deleted_count
+
+
+class JsonStudentTable(StudentTable):
+
+    def save(self, filepath: str) -> None:
+        data = []
+        for record in self._records:
+            data.append({
+                "id": record[0],
+                "first_name": record[1],
+                "second_name": record[2],
+                "age": record[3],
+                "sex": record[4]
+            })
+
+        with open(filepath, 'w', encoding='utf-8') as file:
+            json.dump(data, file, ensure_ascii=False, indent=2)
+
+    def load(self, filepath: str) -> None:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+
+        self._records.clear()
+        for item in data:
+            record = (
+                item["id"],
+                item["first_name"],
+                item["second_name"],
+                item["age"],
+                item["sex"]
+            )
+            self._records.append(record)
+
+
+class CsvStudentTable(StudentTable):
+
+    def save(self, filepath: str) -> None:
+        with open(filepath, 'w', encoding='utf-8', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["id", "first_name", "second_name", "age", "sex"])
+            writer.writerows(self._records)
+
+    def load(self, filepath: str) -> None:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            next(reader)
+
+            self._records.clear()
+            for row in reader:
+                record = (
+                    int(row[0]),
+                    row[1],
+                    row[2],
+                    int(row[3]),
+                    row[4]
+                )
+                self._records.append(record)

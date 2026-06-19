@@ -1,6 +1,6 @@
 from src.db.backend.memory import StudentTable
-from src.db.backend.memory import JsonStudentTable
-from src.db.backend.memory import CsvStudentTable
+from src.db.backend.json_file import JsonStudentTable
+from src.db.backend.csv_file import CsvStudentTable
 
 
 class Tui:
@@ -10,9 +10,8 @@ class Tui:
             "json": JsonStudentTable,
             "csv": CsvStudentTable,
         }
-        self._init_database()
 
-    def _init_database(self) -> None:
+    def init_database(self) -> None:
         self._print_main_menu()
         cmd = input("Выберите вариант: ").strip()
 
@@ -52,7 +51,6 @@ class Tui:
         print("3. Найти записи")
         print("4. Обновить записи")
         print("5. Удалить записи")
-        print("6. Загрузить из файла")
         print("0. Выход")
 
     def _read_int(self, prompt: str) -> int:
@@ -212,9 +210,6 @@ class Tui:
             print(f"Успешно удалено записей: {count}")
         except ValueError as exc:
             print(f"Ошибка: {exc}")
-
-    def _load_from_file(self) -> None:
-        self._student_table.load()
 
     def run(self) -> None:
         while True:

@@ -4,8 +4,9 @@ import os
 import json
 import csv
 
-from src.db.backend.memory import StudentTable, JsonStudentTable, CsvStudentTable
-
+from src.db.backend.memory import StudentTable
+from src.db.backend.json_file import JsonStudentTable
+from src.db.backend.csv_file import CsvStudentTable
 
 class TestMemory(unittest.TestCase):
     def setUp(self):

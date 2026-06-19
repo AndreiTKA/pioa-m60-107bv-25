@@ -6,9 +6,10 @@ from src.db.tui import Tui
 
 class TestTui(unittest.TestCase):
     def setUp(self):
-        with patch("builtins.input", side_effect=["1", "0"]):
-            with patch("sys.stdout", new_callable=StringIO):
-                self.tui = Tui()
+        with patch("sys.stdout", new_callable=StringIO):
+            self.tui = Tui()
+        from src.db.backend.memory import StudentTable
+        self.tui._student_table = StudentTable()
 
     @patch("sys.stdout", new_callable=StringIO)
     @patch("builtins.input", side_effect=["1", "John", "Doe", "20", "M"])
@@ -140,32 +141,58 @@ class TestTui(unittest.TestCase):
         self.assertEqual(len(self.tui._student_table.select()), 1)
 
     @patch("sys.stdout", new_callable=StringIO)
-    @patch("builtins.input", side_effect=["1", "0"])
+    @patch("builtins.input", side_effect=["0"])
     def test_run_exit_immediately(self, mock_input, mock_stdout):
-        with patch("builtins.input", side_effect=["1", "0"]):
-            with patch("sys.stdout", new_callable=StringIO):
-                tui = Tui()
-        self.tui._student_table = tui._student_table
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            with patch("builtins.input", side_effect=["0"]):
-                self.tui.run()
+        self.tui.run()
         output = mock_stdout.getvalue()
         self.assertIn("Выход из программы.", output)
 
     @patch("sys.stdout", new_callable=StringIO)
-    @patch("builtins.input", side_effect=["1", "2", "0"])
+    @patch("builtins.input", side_effect=["2", "0"])
     def test_run_show_all_then_exit(self, mock_input, mock_stdout):
-        with patch("builtins.input", side_effect=["1", "0"]):
-            with patch("sys.stdout", new_callable=StringIO):
-                tui = Tui()
-        self.tui._student_table = tui._student_table
         self.tui._student_table.create(1, "Test", "User", 25, "M")
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            with patch("builtins.input", side_effect=["2", "0"]):
-                self.tui.run()
+        self.tui.run()
         output = mock_stdout.getvalue()
         self.assertIn("(1, 'Test', 'User', 25, 'M')", output)
         self.assertIn("Выход из программы.", output)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    @patch("builtins.input", side_effect=["1"])
+    def test_init_database_inmemory(self, mock_input, mock_stdout):
+        # Создаём новый экземпляр без предустановленной таблицы
+        with patch("sys.stdout", new_callable=StringIO):
+            tui = Tui()
+        # Мокаем run чтобы не запускать основной цикл
+        with patch.object(tui, 'run'):
+            tui.init_database()
+        output = mock_stdout.getvalue()
+        self.assertIn("Выбрана работа с памятью (Inmemory)", output)
+        from src.db.backend.memory import StudentTable
+        self.assertIsInstance(tui._student_table, StudentTable)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    @patch("builtins.input", side_effect=["2", "/path/to/file.json"])
+    def test_init_database_json(self, mock_input, mock_stdout):
+        with patch("sys.stdout", new_callable=StringIO):
+            tui = Tui()
+        with patch.object(tui, 'run'):
+            tui.init_database()
+        output = mock_stdout.getvalue()
+        self.assertIn("Выбрана работа с JSON файлом: /path/to/file.json", output)
+        from src.db.backend.json_file import JsonStudentTable
+        self.assertIsInstance(tui._student_table, JsonStudentTable)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    @patch("builtins.input", side_effect=["3", "/path/to/file.csv"])
+    def test_init_database_csv(self, mock_input, mock_stdout):
+        with patch("sys.stdout", new_callable=StringIO):
+            tui = Tui()
+        with patch.object(tui, 'run'):
+            tui.init_database()
+        output = mock_stdout.getvalue()
+        self.assertIn("Выбрана работа с CSV файлом: /path/to/file.csv", output)
+        from src.db.backend.csv_file import CsvStudentTable
+        self.assertIsInstance(tui._student_table, CsvStudentTable)
 
 
 if __name__ == "__main__":

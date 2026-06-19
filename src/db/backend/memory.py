@@ -47,6 +47,12 @@ class StudentTable:
         if not filters:
             raise ValueError("Не заданы фильтры для обновления. Обновление всех записей запрещено.")
 
+        allowed_fields = {"first_name", "second_name", "age", "sex"}
+        invalid_fields = set(new_values.keys()) - allowed_fields
+        if invalid_fields:
+            raise KeyError(f"Переданы неверные поля для обновления: {invalid_fields}. "
+                           f"Допустимые поля: {allowed_fields}")
+
         updated_count = 0
         for i, record in enumerate(self._records):
             if self._check_filters(record, filters):
@@ -81,104 +87,5 @@ class StudentTable:
         return deleted_count
 
 
-class JsonStudentTable(StudentTable):
-    def __init__(self, path):
-        super().__init__()
-        self.path = path
 
 
-    def save(self) -> None:
-        data = []
-        for record in self._records:
-            data.append({
-                "id": record[0],
-                "first_name": record[1],
-                "second_name": record[2],
-                "age": record[3],
-                "sex": record[4]
-            })
-        to_write = {'data': data, 'table_structure': {'columns': ['id', 'first_name', 'second_name', 'age', 'sex'], 'types': ['int', 'str', 'str', 'int', 'str']}}
-        with open(self.path, 'w', encoding='utf-8') as file:
-            json.dump(to_write, file, ensure_ascii=False, indent=2)
-
-    def load(self) -> None:
-        with open(self.path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-
-        if ['id', 'first_name', 'second_name', 'age', 'sex'] != data['table_structure']['columns']:
-            raise KeyError('Заголовки таблицы некорректны')
-
-        if ['int', 'str', 'str', 'int', 'str'] != data['table_structure']['types']:
-            raise TypeError('Типы данных некорректны')
-        self._records.clear()
-        for item in data['data']:
-            record = (
-                item["id"],
-                item["first_name"],
-                item["second_name"],
-                item["age"],
-                item["sex"]
-            )
-            for it, _type in zip(record, data['table_structure']['types']):
-                if not isinstance(it, TYPES[_type]):
-                    raise TypeError('Неdерный тип данных {}'.format(it))
-
-            self._records.append(record)
-
-    def update(self, *args, **kwargs):
-        data = super().update(*args, **kwargs)
-        self.save()
-        return data
-
-    def create(self, *args, **kwargs):
-        data = super().create(*args, **kwargs)
-        self.save()
-        return data
-
-    def delete(self, *args, **kwargs):
-        data = super().delete(*args, **kwargs)
-        self.save()
-        return data
-
-
-class CsvStudentTable(StudentTable):
-    def __init__(self, path):
-        super().__init__()
-        self.path = path
-
-    def save(self) -> None:
-        with open(self.path, 'w', encoding='utf-8', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(["id", "first_name", "second_name", "age", "sex"])
-            writer.writerows(self._records)
-
-    def load(self) -> None:
-        with open(self.path, 'r', encoding='utf-8') as file:
-            reader = csv.reader(file)
-            next(reader)
-
-            self._records.clear()
-            for row in reader:
-                record = (
-                    int(row[0]),
-                    row[1],
-                    row[2],
-                    int(row[3]),
-                    row[4]
-                )
-                self._records.append(record)
-
-    def update(self, *args, **kwargs):
-        data = super().update(*args, **kwargs)
-        self.save()
-        return data
-
-    def create(self, *args, **kwargs):
-        data = super().create(*args, **kwargs)
-        self.save()
-        return data
-
-    def delete(self, *args, **kwargs):
-        data = super().delete(*args, **kwargs)
-        self.save()
-        return data

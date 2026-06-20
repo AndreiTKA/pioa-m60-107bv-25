@@ -328,8 +328,8 @@ class TestCsvStudentTable(unittest.TestCase):
             reader = csv.reader(f)
             rows = list(reader)
 
-        self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0], ["id", "first_name", "second_name", "age", "sex"])
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0], ['SCHEMA', 'id,first_name,second_name,age,sex', 'int,str,str,int,str'])
 
     def test_save_and_load_single_record(self):
         test_record = (1, "John", "Doe", 20, "M")
@@ -358,8 +358,9 @@ class TestCsvStudentTable(unittest.TestCase):
             reader = csv.reader(f)
             rows = list(reader)
 
-        self.assertEqual(len(rows), 6)
-        self.assertEqual(rows[0], ["id", "first_name", "second_name", "age", "sex"])
+        self.assertEqual(len(rows), 7)
+        self.assertEqual(rows[1], ["id", "first_name", "second_name", "age", "sex"])
+        self.assertEqual(rows[0], ['SCHEMA', 'id,first_name,second_name,age,sex', 'int,str,str,int,str'])
 
         new_table = CsvStudentTable(path=self.test_file)
         new_table.load()
@@ -399,8 +400,10 @@ class TestCsvStudentTable(unittest.TestCase):
 
         with open(self.test_file, 'r', encoding='utf-8') as f:
             first_line = f.readline().strip()
+            second_line = f.readline().strip()
 
-        self.assertEqual(first_line, "id,first_name,second_name,age,sex")
+        self.assertEqual(first_line, 'SCHEMA,"id,first_name,second_name,age,sex","int,str,str,int,str"')
+        self.assertEqual(second_line, "id,first_name,second_name,age,sex")
 
     def test_csv_with_special_characters(self):
         test_record = (1, "Mary-Jane", "O'Connor", 25, "F")

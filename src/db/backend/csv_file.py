@@ -16,7 +16,9 @@ class CsvStudentTable(StudentTable):
 
     def save(self) -> None:
         try:
-            os.makedirs(os.path.dirname(self.path), exist_ok=True)
+            directory = os.path.dirname(self.path)
+            if directory and not os.path.exists(directory):
+                os.makedirs(directory, exist_ok=True)
 
             with open(self.path, 'w', encoding='utf-8', newline='') as file:
                 writer = csv.writer(file)

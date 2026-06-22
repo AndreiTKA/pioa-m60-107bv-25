@@ -12,6 +12,8 @@ class CsvStudentTable(StudentTable):
             'types': ['int', 'str', 'str', 'int', 'str']
         }
 
+        self.load()
+
     def save(self) -> None:
         try:
             with open(self.path, 'w', encoding='utf-8', newline='') as file:
@@ -31,9 +33,10 @@ class CsvStudentTable(StudentTable):
     def load(self) -> None:
         try:
             if not os.path.exists(self.path):
-                raise FileNotFoundError(f'Файл {self.path} не найден')
+                self.save()
+                return
 
-            with open(self.path, 'r', encoding='utf-8') as file:
+        with open(self.path, 'r', encoding='utf-8') as file:
                 reader = csv.reader(file)
 
                 try:

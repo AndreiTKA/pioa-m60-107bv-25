@@ -11,6 +11,7 @@ class JsonStudentTable(StudentTable):
             'columns': ['id', 'first_name', 'second_name', 'age', 'sex'],
             'types': ['int', 'str', 'str', 'int', 'str']
         }
+        self.load()
 
     def save(self) -> None:
         data = []
@@ -32,7 +33,8 @@ class JsonStudentTable(StudentTable):
     def load(self) -> None:
         try:
             if not os.path.exists(self.path):
-                raise FileNotFoundError(f'Файл {self.path} не найден')
+                self.save()
+                return
 
             with open(self.path, 'r', encoding='utf-8') as file:
                 try:

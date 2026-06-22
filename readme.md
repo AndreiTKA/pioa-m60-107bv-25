@@ -10,11 +10,11 @@
 │ │ ├── __init__.py
 │ │ ├── __main__.py
 │ │ └── tui.py
-│ │    
-│ ├── tests/
-│ │  ├── memory_test.py
-│ │  └── tui_test.py
-│ │
+│    
+├── tests/
+│  ├── memory_test.py
+│  └── tui_test.py
+│
 └── README.md
 ```
 

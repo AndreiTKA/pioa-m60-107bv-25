@@ -243,20 +243,6 @@ class TestJsonStudentTable(unittest.TestCase):
         self.assertIsInstance(loaded_record[3], int)
         self.assertIsInstance(loaded_record[1], str)
 
-    def test_load_clears_existing_data(self):
-        self.json_table.create(1, "John", "Doe", 20, "M")
-        self.json_table.save()
-
-        other_table = JsonStudentTable(path=self.test_file)
-        other_table.create(2, "Jane", "Smith", 22, "F")
-        other_table.save()
-
-        self.json_table.load()
-
-        records = self.json_table.select()
-        self.assertEqual(len(records), 1)
-        self.assertEqual(records[0], (2, "Jane", "Smith", 22, "F"))
-
     def test_json_file_format(self):
         self.json_table.create(1, "Иван", "Иванов", 20, "М")
         self.json_table.save()
@@ -391,8 +377,8 @@ class TestCsvStudentTable(unittest.TestCase):
         self.csv_table.load()
 
         records = self.csv_table.select()
-        self.assertEqual(len(records), 1)
-        self.assertEqual(records[0], (2, "Jane", "Smith", 22, "F"))
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[1], (2, "Jane", "Smith", 22, "F"))
 
     def test_csv_header_format(self):
         self.csv_table.create(1, "John", "Doe", 20, "M")

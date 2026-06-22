@@ -25,6 +25,7 @@ class JsonStudentTable(StudentTable):
             })
         to_write = {'data': data, 'table_structure': self.table_structure}
         try:
+            os.makedirs(os.path.dirname(self.path), exist_ok=True)
             with open(self.path, 'w', encoding='utf-8') as file:
                 json.dump(to_write, file, ensure_ascii=False, indent=2)
         except OSError as e:
